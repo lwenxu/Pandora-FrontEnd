@@ -16,6 +16,19 @@ export default [
     component: '../layouts/BasicLayout',
     Routes: ['src/pages/Authorized'],
     routes: [
+      // base
+      {
+        path: '/base',
+        icon: 'form',
+        name: 'base',
+        routes: [
+          {
+            path: '/base/user',
+            name: 'user',
+            component: './Base/UserList',
+          },
+        ]
+      },
       // dashboard
       { path: '/', redirect: '/dashboard/analysis' },
       {
@@ -92,11 +105,6 @@ export default [
         icon: 'table',
         name: 'list',
         routes: [
-          {
-            path: '/list/table-list',
-            name: 'searchtable',
-            component: './List/UserList',
-          },
           {
             path: '/list/basic-list',
             name: 'basiclist',

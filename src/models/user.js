@@ -51,7 +51,6 @@ export default {
       let dataMap = [];
       action.payload.map(x => {
         x.key = x.id;
-        x.status = x.state;
         dataMap.push(x);
       });
       return {
@@ -81,7 +80,7 @@ export default {
         const id = params.id, status = params.status;
         for (let key in list) {
           if (id.indexOf(list[key].id) !== -1) {
-            list[key].state = status;
+            list[key].status = status;
             if (params.type === 'delete') {
               list.splice(key, 1);
             }

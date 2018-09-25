@@ -3,7 +3,7 @@ import request from '@/utils/request';
 import conf from './config'
 
 export async function query(params) {
-    return request(`${conf.baseUrl}/admin/user/list.json?${stringify(params)}`, {method: 'POST'});
+    return request(`${conf.baseUrl}/admin/user/list?${stringify(params)}`, {method: 'POST'});
 }
 
 export async function queryCurrent() {
