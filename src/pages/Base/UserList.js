@@ -255,8 +255,10 @@ class UpdateForm extends PureComponent {
   };
 
   render() {
-    const { updateModalVisible, handleUpdateModalVisible, title } = this.props;
-    const { currentStep, formVals } = this.state;
+    const { updateModalVisible, handleUpdateModalVisible, title,groups } = this.props;
+    console.log(this.props);
+    const { currentStep } = this.state;
+    const formVals=this.props.values;
     const { getFieldDecorator } = this.props.form;
     const { autoCompleteResult } = this.state;
     const residences = [{
@@ -382,7 +384,7 @@ class UpdateForm extends PureComponent {
             {...formItemLayout}
             label="状态">
             {(
-              <Select defaultValue={formVals.status} style={{ width: '100%' }}>
+              <Select defaultValue={formVals.status===1?"启用":"禁用"} style={{ width: '100%' }}>
                 <Option value="1">启用</Option>
                 <Option value="2">禁用</Option>
               </Select>
@@ -529,6 +531,9 @@ class UserList extends PureComponent {
     dispatch({
       type: 'user/fetch',
     });
+    dispatch({
+      type:'user/groups'
+    })
   }
 
   handleOperate = (e) => {
@@ -849,7 +854,6 @@ class UserList extends PureComponent {
 
   render() {
     const { user, loading } = this.props;
-    console.log(user);
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
@@ -903,6 +907,7 @@ class UserList extends PureComponent {
             {...updateMethods}
             updateModalVisible={updateModalVisible}
             values={stepFormValues}
+            groups={groups}
             title="修改用户信息"
           />
         ) : null}

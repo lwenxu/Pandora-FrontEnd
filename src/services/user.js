@@ -14,3 +14,7 @@ export async function changeStatus(params) {
     const queryStr = 'ids=' + params.id + '&status=' + params.status;
     return request(`${conf.baseUrl}/admin/user/update?${queryStr}`,{method: 'POST'});
 }
+
+export async function queryAllGroups() {
+  return request(`${conf.baseUrl}/admin/group/list`, {method: 'GET'});
+}

@@ -1,4 +1,5 @@
-import {query as queryUsers, queryCurrent, changeStatus} from '@/services/user';
+import {changeStatus, query as queryUsers, queryCurrent} from '@/services/user';
+import {queryAllGroups} from "../services/user";
 
 export default {
   namespace: 'user',
@@ -24,6 +25,14 @@ export default {
         params: payload
       })
     },
+    * groups({payload}, {call, put}) {
+      const response = yield call(queryAllGroups);
+      yield put({
+        'type': 'queryGroups',
+        payload: response
+      })
+    },
+
     * refresh({payload}, {call, put}) {
       yield put({
         type: 'save',
@@ -92,6 +101,31 @@ export default {
         ...state,
         currentUser: action.payload || {},
       };
+    },
+    queryGroups(state, action) {
+      function buildTree(arr) {
+        if (arr.length === 0) {
+          return null;
+        }
+        let ret = [];
+        for (let i = 0; i < arr.length; i++) {
+          let tree = {};
+          tree.value = arr[i].id;
+          tree.label = arr[i].name;
+          tree.children = buildTree(arr[i].children);
+          ret.push(tree);
+        }
+        return ret;
+      }
+
+      if (parseInt(action.payload.code) === 201) {
+        const {data} = action.payload;
+        state.groups = buildTree(data);
+        // console.log("kk",state);
+      }
+      return {
+        ...state,
+      }
     }
   },
 };
