@@ -594,6 +594,7 @@ class UserList extends PureComponent {
     });
   };
 
+
   handleFormReset = () => {
     const { form, dispatch } = this.props;
     form.resetFields();
