@@ -6,6 +6,10 @@ export async function query(params) {
     return request(`${conf.baseUrl}/admin/user/list?${stringify(params)}`, {method: 'POST'});
 }
 
+export async function updateUser(formVal) {
+  return request(`${conf.baseUrl}/admin/user/update`,{method:'POST', body: formVal});
+}
+
 export async function queryCurrent() {
     return request('/api/currentUser');
 }

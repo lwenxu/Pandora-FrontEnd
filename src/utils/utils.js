@@ -181,3 +181,19 @@ export function formatWan(val) {
 export function isAntdPro() {
   return window.location.hostname === 'preview.pro.ant.design';
 }
+
+export function getGroupNameById(id, group) {
+  if (!group || group.length===0) {
+    return null;
+  }
+  let ret;
+  for (let i = 0; i < group.length; i++) {
+    if (group[i].value === id) {
+      ret= group[i].label;
+      return ret;
+    }
+    let tmp = getGroupNameById(id, group[i].children);
+    ret = !tmp ? ret : tmp;
+  }
+  return ret;
+}

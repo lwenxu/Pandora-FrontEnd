@@ -27,6 +27,7 @@ import StandardTable from '@/components/StandardTable';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 
 import styles from './UserList.less';
+import { getGroupNameById } from '../../utils/utils';
 
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
@@ -79,6 +80,7 @@ const CreateForm = Form.create()(props => {
 });
 
 @Form.create()
+  @connect(({state,loading})=>({state:state, loading: loading}))
 class UpdateForm extends PureComponent {
   constructor(props) {
     super(props);
@@ -255,35 +257,14 @@ class UpdateForm extends PureComponent {
   };
 
   render() {
-    const { updateModalVisible, handleUpdateModalVisible, title,groups } = this.props;
-    console.log(this.props);
+    const { updateModalVisible, handleUpdateModalVisible, title } = this.props;
+    // const { groups } = this.props.user;
+    // console.log(groups);
     const { currentStep } = this.state;
-    const formVals=this.props.values;
+    const formVals = this.props.values;
     const { getFieldDecorator } = this.props.form;
     const { autoCompleteResult } = this.state;
-    const residences = [{
-      value: 'zhejiang',
-      label: 'Zhejiang',
-      children: [{
-        value: 'hangzhou',
-        label: 'Hangzhou',
-        children: [{
-          value: 'xihu',
-          label: 'West Lake',
-        }],
-      }],
-    }, {
-      value: 'jiangsu',
-      label: 'Jiangsu',
-      children: [{
-        value: 'nanjing',
-        label: 'Nanjing',
-        children: [{
-          value: 'zhonghuamen',
-          label: 'Zhong Hua Men',
-        }],
-      }],
-    }];
+    const residences = this.props.groups;
     const formItemLayout = {
       labelCol: {
         xs: { span: 24 },
@@ -314,9 +295,9 @@ class UpdateForm extends PureComponent {
         title={title}
         visible={updateModalVisible}
         onCancel={() => handleUpdateModalVisible()}
+        onOk={() => this.handleUpdateModal()}
         centered
       >
-        {/*<Form onSubmit={this.handleSubmit}>*/}
         <Form>
           <FormItem
             {...formItemLayout}
@@ -344,7 +325,7 @@ class UpdateForm extends PureComponent {
           >
             {getFieldDecorator('password', {
               rules: [{
-                required: true, message: '请输入密码!',
+                required: false, message: '请输入密码!',
               }, {}],
             })(
               <Input type="password"/>,
@@ -356,7 +337,7 @@ class UpdateForm extends PureComponent {
           >
             {getFieldDecorator('confirm', {
               rules: [{
-                required: true, message: '请重复输入密码!',
+                required: false, message: '请重复输入密码!',
               }, {}],
             })(
               <Input type="password" onBlur={this.handleConfirmBlur}/>,
@@ -383,8 +364,8 @@ class UpdateForm extends PureComponent {
           <FormItem
             {...formItemLayout}
             label="状态">
-            {(
-              <Select defaultValue={formVals.status===1?"启用":"禁用"} style={{ width: '100%' }}>
+            {getFieldDecorator('status',{initialValue:formVals.status === 1 ? '启用' : '禁用'})(
+              <Select style={{ width: '100%' }}>
                 <Option value="1">启用</Option>
                 <Option value="2">禁用</Option>
               </Select>
@@ -423,13 +404,27 @@ class UpdateForm extends PureComponent {
               <Input/>,
             )}
           </FormItem>
-          <FormItem {...tailFormItemLayout}>
-            <Button type="primary" htmlType="submit">确定</Button>
-          </FormItem>
         </Form>
       </Modal>
     );
   }
+
+  handleUpdateModal = () => {
+
+    const { notify, dispatch, form, handleUpdateModalVisible } = this.props;
+    form.validateFields((err, fieldsValue) => {
+      if (err) return;
+    });
+    let values = form.getFieldsValue(['username', 'nickname', 'password', 'confirm', 'status', 'group', 'phone', 'email']);
+    dispatch({
+      type: 'user/update',
+      payload:{
+        formValues: values,
+        notify: notify,
+      }
+    });
+    handleUpdateModalVisible(false);
+  };
 }
 
 /* eslint react/no-multi-comp:0 */
@@ -450,81 +445,6 @@ class UserList extends PureComponent {
     stepFormValues: {},
   };
 
-  columns = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      sorter: true,
-    },
-    {
-      title: '用户名',
-      dataIndex: 'username',
-    },
-    {
-      title: '昵称',
-      dataIndex: 'nickName',
-      // render: val => `${val} 万`,
-      // mark to display a total number
-      // needTotal: true,
-    }
-    , {
-      title: '群组',
-      dataIndex: 'group',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      filters: [
-        {
-          text: status.disable.label,
-          value: status.disable.id,
-        },
-        {
-          text: status.enable.label,
-          value: status.enable.id,
-        },
-      ],
-      render(val) {
-        return <Badge status={statusMap[val]} text={status[val]}/>;
-      },
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      sorter: true,
-      render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updateTime',
-      sorter: true,
-      render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
-    },
-    {
-      title: '操作',
-      render: (text, record) => {
-        let op = null;
-        if (parseInt(record.status) === 1) {
-          op = <a data-operator="disable" id={record.id} onClick={this.handleOperate}>禁用</a>;
-        } else {
-          op = <a data-operator="enable" id={record.id} onClick={this.handleOperate}>启用</a>;
-        }
-        return (
-          <Fragment>
-            <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
-            <Divider type="vertical"/>
-            <Popconfirm title="确定删除？" onConfirm={() => this.confirmDelete(record.id)} okText="是" cancelText="否">
-              <a>删除</a>
-            </Popconfirm>
-            <Divider type="vertical"/>
-            {op}
-          </Fragment>
-        );
-      },
-    }
-    ,
-  ];
-
 
   componentDidMount() {
     const { dispatch } = this.props;
@@ -532,8 +452,8 @@ class UserList extends PureComponent {
       type: 'user/fetch',
     });
     dispatch({
-      type:'user/groups'
-    })
+      type: 'user/groups',
+    });
   }
 
   handleOperate = (e) => {
@@ -855,6 +775,7 @@ class UserList extends PureComponent {
 
   render() {
     const { user, loading } = this.props;
+    const { groups } = this.props.user;
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
@@ -871,6 +792,87 @@ class UserList extends PureComponent {
       handleUpdateModalVisible: this.handleUpdateModalVisible,
       handleUpdate: this.handleUpdate,
     };
+    const columns = [
+      {
+        title: 'ID',
+        dataIndex: 'id',
+        sorter: true,
+      },
+      {
+        title: '用户名',
+        dataIndex: 'username',
+      },
+      {
+        title: '昵称',
+        dataIndex: 'nickName',
+        // render: val => `${val} 万`,
+        // mark to display a total number
+        // needTotal: true,
+      }
+      , {
+        title: '群组',
+        dataIndex: 'group',
+        render: val => {
+          if (!val || val.length === 0) {
+            return '-';
+          } else {
+            return getGroupNameById(parseInt(val[val.length - 1]), groups) || '-';
+          }
+        },
+      },
+      {
+        title: '状态',
+        dataIndex: 'status',
+        filters: [
+          {
+            text: status.disable.label,
+            value: status.disable.id,
+          },
+          {
+            text: status.enable.label,
+            value: status.enable.id,
+          },
+        ],
+        render(val) {
+          return <Badge status={statusMap[val]} text={status[val]}/>;
+        },
+      },
+      {
+        title: '创建时间',
+        dataIndex: 'createTime',
+        sorter: true,
+        render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
+      },
+      {
+        title: '更新时间',
+        dataIndex: 'updateTime',
+        sorter: true,
+        render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
+      },
+      {
+        title: '操作',
+        render: (text, record) => {
+          let op = null;
+          if (parseInt(record.status) === 1) {
+            op = <a data-operator="disable" id={record.id} onClick={this.handleOperate}>禁用</a>;
+          } else {
+            op = <a data-operator="enable" id={record.id} onClick={this.handleOperate}>启用</a>;
+          }
+          return (
+            <Fragment>
+              <a onClick={() => this.handleUpdateModalVisible(true, record)}>修改</a>
+              <Divider type="vertical"/>
+              <Popconfirm title="确定删除？" onConfirm={() => this.confirmDelete(record.id)} okText="是" cancelText="否">
+                <a>删除</a>
+              </Popconfirm>
+              <Divider type="vertical"/>
+              {op}
+            </Fragment>
+          );
+        },
+      }
+      ,
+    ];
     return (
       <PageHeaderWrapper title="查询用户">
 
@@ -896,7 +898,7 @@ class UserList extends PureComponent {
               selectedRows={selectedRows}
               loading={loading}
               data={user}
-              columns={this.columns}
+              columns={columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}
             />
@@ -909,6 +911,7 @@ class UserList extends PureComponent {
             updateModalVisible={updateModalVisible}
             values={stepFormValues}
             groups={groups}
+            notify={this.openNotificationWithIcon}
             title="修改用户信息"
           />
         ) : null}

@@ -1,5 +1,5 @@
 import {changeStatus, query as queryUsers, queryCurrent} from '@/services/user';
-import {queryAllGroups} from "../services/user";
+import { queryAllGroups, updateUser} from '../services/user';
 
 export default {
   namespace: 'user',
@@ -31,6 +31,20 @@ export default {
         'type': 'queryGroups',
         payload: response
       })
+    },
+    * update({ payload }, { call, put }) {
+      console.log(payload);
+      const response=yield call(updateUser,payload);
+      if (parseInt(response.code) !== 201) {
+        payload.notify('error', '更新用户失败！');
+        return;
+      }else {
+        payload.notify('success', '更新用户成功！');
+      }
+      put({
+        type: 'update',
+        payload: response,
+      });
     },
 
     * refresh({payload}, {call, put}) {
@@ -66,6 +80,18 @@ export default {
         ...state,
         list: dataMap,
       };
+    },
+    update(state, action) {
+      const updateVal = action.formValues;
+      for (let i = 0; i < state.list.length; i++) {
+        if (state.list[i].id === updateVal.id) {
+
+        }
+      }
+      return {
+        ...state
+      }
+
     },
     saveCurrentUser(state, action) {
       return {
