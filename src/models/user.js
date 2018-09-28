@@ -1,5 +1,5 @@
 import {changeStatus, query as queryUsers, queryCurrent} from '@/services/user';
-import { queryAllGroups, updateUser} from '../services/user';
+import {addUser, queryAllGroups, updateUser} from '../services/user';
 
 export default {
   namespace: 'user',
@@ -32,20 +32,47 @@ export default {
         payload: response
       })
     },
-    * update({ payload }, { call, put }) {
-      console.log(payload);
-      const response=yield call(updateUser,payload);
+    * update({payload}, {call, put}) {
+      let formVal = {...payload.formValues};
+      let {group} = formVal;
+      formVal.group = group[group.length - 1] || null;
+      payload.formValues.nickName = payload.formValues.nickname;
+      const response = yield call(updateUser, formVal);
       if (parseInt(response.code) !== 201) {
         payload.notify('error', '更新用户失败！');
-        return;
-      }else {
+      } else {
         payload.notify('success', '更新用户成功！');
+        yield put({
+          type: 'updateUser',
+          payload: payload,
+        });
       }
-      put({
-        type: 'update',
-        payload: response,
-      });
     },
+    * add({payload}, {call, put}) {
+      let formVal = {...payload.formValues};
+      let {group} = formVal;
+      formVal.group = group[group.length - 1] || null;
+      payload.formValues.nickName = payload.formValues.nickname;
+      const response = yield call(addUser, formVal);
+      if (parseInt(response.code) !== 201) {
+        payload.notify('error', '添加用户失败！');
+      } else {
+        payload.notify('success', '添加用户成功！');
+        payload.formValues.id = response.data;
+        yield put({
+          type: 'addUser',
+          payload: payload
+        })
+      }
+
+    },
+    * updateModel({payload}, {call, put}) {
+      yield put({
+        type: 'updateModelReducer',
+        payload: payload
+      })
+    },
+
 
     * refresh({payload}, {call, put}) {
       yield put({
@@ -81,13 +108,15 @@ export default {
         list: dataMap,
       };
     },
-    update(state, action) {
-      const updateVal = action.formValues;
+    updateUser(state, action) {
+      let updateVal = action.payload.formValues;
       for (let i = 0; i < state.list.length; i++) {
         if (state.list[i].id === updateVal.id) {
-
+          state.list[i] = updateVal;
+          break;
         }
       }
+      console.log(state);
       return {
         ...state
       }
@@ -152,6 +181,12 @@ export default {
       return {
         ...state,
       }
+    },
+    addUser(state, action) {
+      state.list.unshift(action.payload.formValues);
+      return {
+        ...state
+      };
     }
   },
 };

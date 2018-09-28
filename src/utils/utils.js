@@ -1,7 +1,7 @@
 import moment from 'moment';
 import React from 'react';
 import nzh from 'nzh/cn';
-import { parse, stringify } from 'qs';
+import {parse, stringify} from 'qs';
 
 export function fixedZero(val) {
   return val * 1 < 10 ? `0${val}` : val;
@@ -183,17 +183,27 @@ export function isAntdPro() {
 }
 
 export function getGroupNameById(id, group) {
-  if (!group || group.length===0) {
+  if (!group || group.length === 0) {
     return null;
   }
   let ret;
   for (let i = 0; i < group.length; i++) {
     if (group[i].value === id) {
-      ret= group[i].label;
+      ret = group[i].label;
       return ret;
     }
     let tmp = getGroupNameById(id, group[i].children);
     ret = !tmp ? ret : tmp;
   }
   return ret;
+}
+
+export function objToFormData(obj) {
+  let formData = new FormData();
+  for (let key in obj){
+    if (obj.hasOwnProperty(key)&&obj[key]) {
+      formData.append(key, obj[key]);
+    }
+  }
+  return formData;
 }
