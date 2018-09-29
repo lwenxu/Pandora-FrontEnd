@@ -29,6 +29,24 @@ export default [
           },
         ]
       },
+      {
+        path: '/code',
+        icon: 'code',
+        name: 'code',
+        routes: [
+          {
+            path: '/code/systemList',
+            name: 'systemList',
+            component: './CodeGenerate/SystemList',
+          },
+          {
+            path: '/code/backEndCode',
+            name: 'backEnd',
+            component: './CodeGenerate/BackEndCode',
+          },
+        ]
+      },
+
       // dashboard
       { path: '/', redirect: '/dashboard/analysis' },
       {
